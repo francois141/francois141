@@ -1,7 +1,6 @@
 ### Hi there 👋 
 
-#### I am a machine learning engineer at BSI (https://www.bsi-software.com/) 
-#### and master student in computer science at ETHZ.
+#### I am a machine learning engineer at BSI (https://www.bsi-software.com/) and master student in computer science at ETHZ.
 
 - 🔭 I’m currently working on my custom operating system
 - 🌱 I’m currently learning low level and high performance programming
