@@ -1,13 +1,13 @@
-## Welcome to my page, my name is François Costa 👋 
+# Welcome to my page, my name is François Costa 👋 
 
-### I am a golang backend engineer at BSI (https://www.bsi-software.com/) and master student in computer science at ETHZ.
+## I am a golang backend engineer at BSI (https://www.bsi-software.com/) and master student in computer science at ETHZ.
 
 - 🔭 I’m currently working on my custom operating system
 - 🌱 I’m currently learning low level and high performance programming
 - 📫 How to reach me: fcosta@ethz.ch
 - ⚡ Fun fact: The hardest climb I did with my bike https://fr.wikipedia.org/wiki/Col_de_la_Croix_(Vaud)
 
-### My skills
+## 💻 Tech Stack:
 
 <div align="center">
 
@@ -63,3 +63,7 @@
 ![Redis](https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white)
 
 </div>
+
+## 📊 GitHub Stats:
+
+![](https://github-readme-stats.vercel.app/api/top-langs/?username=francois141&theme=dark&hide_border=true&include_all_commits=true&count_private=false&layout=compact)
