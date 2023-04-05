@@ -1,4 +1,4 @@
-# Welcome to my page, my name is François Costa 👋 
+# Welcome to my page, my name is Jean Marc Fournier 👋 
 
 ## I am a golang backend engineer at BSI (https://www.bsi-software.com/) and master student in computer science at ETHZ.
 
