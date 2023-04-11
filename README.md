@@ -3,7 +3,7 @@
 ## I am a golang backend engineer at BSI (https://www.bsi-software.com/) and master student in computer science at ETHZ.
 
 - 🔭 I’m currently working on the project for my master's degree
-- 🌱 I’m currently learning low level and high performance programming
+- 🌱 I’m currently learning low level, high performance programming and algorithms
 - 📫 How to reach me: fcosta@ethz.ch
 - ⚡ Fun fact: The hardest climb I did with my bike https://fr.wikipedia.org/wiki/Col_de_la_Croix_(Vaud)
 
