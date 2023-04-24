@@ -7,6 +7,8 @@
 - 📫 How to reach me: fcosta@ethz.ch
 - ⚡ Fun fact: The hardest climb I did with my bike https://fr.wikipedia.org/wiki/Col_de_la_Croix_(Vaud)
 
+My favourite language is c++
+
 ## 💻 Tech Stack:
 
 <div align="center">
