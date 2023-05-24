@@ -8,6 +8,7 @@ if ((tc && cc) || (cc && !is_read && !is_write)) {
 }
 
 // Code to test the fix
+// Not in shdc.c
 for(int k = 0; k < 10;k++) {
   for(int i = 2; i <= 30;i++) {
     debug_printf("Write read block : %d\n", i);
