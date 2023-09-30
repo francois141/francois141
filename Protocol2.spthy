@@ -36,7 +36,7 @@ rule Get_pk:
 rule AliceSends:
 [Fr(~kAB), Fr(~ma), !Ltk($A, ~ska), !Pk($B, pkB)]
 --[AliceSends($A, $B, ~ma, ~kAB, pkB),RunningA($A, $B, ~ma)]->
-[Alice($A, ~kAB, ~ma), Out(<'A',aenc(~kAB, pkB),senc(~ma, ~kAB)>)]
+[Alice($A,$B, ~kAB, ~ma), Out(<'A',aenc(~kAB, pkB),senc(~ma, ~kAB)>)]
 
 /* The following rule should be annotated by the following action facts: 
 - BobReceived($B, $A, ~mb, ma, kAB, ~skb)
@@ -55,7 +55,7 @@ in
 - AliceReceives($A, $B, ~ma, mb, ~kAB)
 */
 rule AliceReceives:
-[In(senc(mb, ~kAB)), Alice($A, ~kAB, ~ma)]
+[In(senc(mb, ~kAB)), Alice($A,$B, ~kAB, ~ma)]
 --[AliceReceives($A, $B, ~ma, mb, ~kAB),FinishedA($A, $B, ~ma, mb),CommitA($A, $B, mb),SecretA(~ma)]->
 []
 

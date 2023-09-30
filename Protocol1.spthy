@@ -20,7 +20,7 @@ builtins: symmetric-encryption
 rule ShareKey:  // share a key pair between two parties.
   [Fr(~kAB)] 
   --[ShareKey($A, $B, ~kAB)]->
-  [Alice($A, ~kAB), Bob($B, ~kAB)]
+  [Alice($A,$B, ~kAB), Bob($B,$A, ~kAB)]
 
 /* -------------- */
 /* Protocol rules */
@@ -30,24 +30,27 @@ rule ShareKey:  // share a key pair between two parties.
 - AliceSends($A, $B, kAB, ~ma)
 */
 rule AliceSends:
-[Fr(~ma), Alice($A, ~kAB)]
---[AliceSends($A, $B, ~kAB, ~ma),RunningA($A, $B, ~ma)]->
-[Out(senc(~ma,~kAB)),Alice2($A, ~kAB, ~ma)]
+[Fr(~ma), Alice($A,$B, kAB)]
+--[AliceSends($A, $B, kAB, ~ma),RunningA($A, $B, ~ma)]->
+[Out(senc(~ma,kAB)),Alice2($A,$B, kAB, ~ma)]
 
 
 /* The following rule should be annotated by the following action facts: 
 - BobReceivesAndSends($B, $A, kAB, ~mb, ma)
 */
 rule BobReceivesAndSends:
-[Fr(~mb), Bob($B, ~kAB), In(senc(ma,~kAB))]
---[BobReceivesAndSends($B, $A, ~kAB, ~mb, ma),FinishedB($B,$A,ma,~mb), SecretB(~mb),CommitB($B, $A, ma),RunningB($B, $A, ~mb)]->
-[Out(senc(~mb, ~kAB))]
+let 
+  ma = sdec(Request, kAB)
+in
+[Fr(~mb), Bob($B,$A, kAB), In(Request)]
+--[BobReceivesAndSends($B, $A, kAB, ~mb, ma),FinishedB($B,$A,ma,~mb), SecretB(~mb),CommitB($B, $A, ma),RunningB($B, $A, ~mb)]->
+[Out(senc(~mb, kAB))]
 
 /* The following rule should be annotated by the following action facts: 
 - AliceReceives($A, $B, kAB, ~ma, mb)
 */
 rule AliceReceives:
-[In(senc(mb, kAB)), Alice2($A, kAB,~ma)]
+[In(senc(mb, kAB)), Alice2($A,$B, kAB,~ma)]
 --[AliceReceives($A, $B, kAB, ~ma, mb),FinishedA($A, $B, ~ma, mb),CommitA($A, $B, mb),SecretA(~ma)]->
 []
 
