@@ -46,7 +46,7 @@ rule Register_pk:
 rule AliceSendsKey:
 [Fr(~Na), !Ltk($A, ~skA), !Pk($B, pkB)]
 --[AliceSendsKey($A, $B, ~skA, pkB, ~Na)]->
-[Alice($A, ~Na), Out(aenc(~Na, pkB))]
+[Alice($A,$B, ~Na, ~skA), Out(aenc(~Na, pkB))]
 
 /* The following rule should be annotated by the following action facts: 
 - BobReceivesKey($B, $A, ~skB, pkA, ~Nb, Na)
@@ -57,22 +57,22 @@ let
 in
 [Fr(~Nb), In(aenc(Na, pk(~skB))) ,!Ltk($B, ~skB), !Pk($A, pkA)]
 --[BobReceivesKey($B, $A, ~skB, pkA, ~Nb, Na)]->
-[Bob($A, ~Nb, Na, Kab), Out(aenc(<~Nb, Kab>,pkA))]
+[Bob($B, $A, ~Nb, Na, Kab), Out(aenc(<~Nb, Kab>,pkA))]
 
 
 /* The following rule should be annotated by the following action facts: 
 - 
 */
 rule AliceReceivesNb:
-[Alice($A, ~Na), In(aenc(<Nb, Kab>,pk(~skA))), Fr(~ma),!Ltk($A, ~skA)]
---[AliceReceivesNb($A, $B, ~skA, ~Na, Nb, ~ma, Kab), Equality(Kab,f(~Na, Nb)),RunningA($A, $B, ~ma)]->
-[Out(senc(pair(~ma, h(Nb)), Kab)), Alice2($A,~Na, Kab, ~ma)]
+[Alice($A,$B, ~Na, ~skA), In(aenc(<Nb, Kab>,pk(~skA))), Fr(~ma)]
+--[AliceReceivesNb($A, $B, ~skA, ~Na, Nb, ~ma, Kab), Eq(Kab,f(~Na, Nb)),RunningA($A, $B, ~ma)]->
+[Out(senc(pair(~ma, h(Nb)), Kab)), Alice2($A,$B,~Na, Kab, ~ma)]
 
 /* The following rule should be annotated by the following action facts: 
 - BobReceivesMa($B, $A, ~skB, ~Nb, Na, Kab, ~mb, ma)
 */
 rule BobReceivesMa:
-[Bob($A, ~Nb, Na, Kab),Fr(~mb), In(senc(pair(ma, hNb), Kab)),!Ltk($B, ~skB)]
+[Bob($B,$A, ~Nb, Na, Kab),Fr(~mb), In(senc(pair(ma, hNb), Kab)),!Ltk($B, ~skB)]
 --[BobReceivesMa($B, $A, ~skB, ~Nb, Na, Kab, ~mb, ma), Eq(h(~Nb),hNb),FinishedB($B,$A,ma,~mb),RunningB($B, $A, ~mb),SecretB(~mb),CommitB($B, $A, ma)]->
 [Out(senc(<~mb, h(Na)>, Kab))]
 
@@ -80,7 +80,7 @@ rule BobReceivesMa:
 - AliceReceivesMb($A, $B, ~skA, ~Na, ~ma, Kab)
 */
 rule AliceReceivesMb:
-[Alice2($A,~Na, Kab, ~ma), In(senc(<mb, hNa>, Kab))]
+[Alice2($A,$B,~Na, Kab, ~ma), In(senc(<mb, hNa>, Kab))]
 --[Eq(h(~Na),hNa),FinishedA($A, $B,  ~ma, mb),CommitA($A, $B, mb),SecretA(~ma)]->
 []
 
@@ -118,9 +118,5 @@ lemma non_injectiveA:
 //un-comment following line for Task 1.4
 lemma non_injectiveB:
   "All a b t #i. CommitB(b,a,t) @i ==> (Ex #j. RunningA(a,b,t)@j)"
-
-lemma non_injectiveB_correct:
-  "All a b t #i. CommitB(b,a,t) @i ==> (Ex c #j. RunningA(a,c,t)@j)"
-
 
 end
