@@ -1,0 +1,87 @@
+theory Protocol1
+begin
+
+
+/* ----------------- */
+/* Equational theory */
+/* ----------------- */
+
+/* Load the built-in symmetrical encryption theory */
+//Do not change the following line, i.e. do not add, change or remove anything (not even comments) in the following line.
+builtins: symmetric-encryption
+
+/* -------------- */
+/* Share Key Setup */
+/* -------------- */
+
+/* The following rule should be annotated by the following action facts: 
+- ShareKey($A, $B, ~kAB)
+*/
+rule ShareKey:  // share a key pair between two parties.
+  [Fr(~kAB)] 
+  --[ShareKey($A, $B, ~kAB)]->
+  [Alice($A, ~kAB), Bob($B, ~kAB)]
+
+/* -------------- */
+/* Protocol rules */
+/* -------------- */
+
+/* The following rule should be annotated by the following action facts: 
+- AliceSends($A, $B, kAB, ~ma)
+*/
+rule AliceSends:
+[Fr(~ma), Alice($A, ~kAB)]
+--[AliceSends($A, $B, ~kAB, ~ma),RunningA($A, $B, ~ma)]->
+[Out(senc(~ma,~kAB)),Alice2($A, ~kAB, ~ma)]
+
+
+/* The following rule should be annotated by the following action facts: 
+- BobReceivesAndSends($B, $A, kAB, ~mb, ma)
+*/
+rule BobReceivesAndSends:
+[Fr(~mb), Bob($B, ~kAB), In(senc(ma,~kAB))]
+--[BobReceivesAndSends($B, $A, ~kAB, ~mb, ma),FinishedB($B,$A,ma,~mb), SecretB(~mb),CommitB($B, $A, ma),RunningB($B, $A, ~mb)]->
+[Out(senc(~mb, ~kAB))]
+
+/* The following rule should be annotated by the following action facts: 
+- AliceReceives($A, $B, kAB, ~ma, mb)
+*/
+rule AliceReceives:
+[In(senc(mb, kAB)), Alice2($A, kAB,~ma)]
+--[AliceReceives($A, $B, kAB, ~ma, mb),FinishedA($A, $B, ~ma, mb),CommitA($A, $B, mb),SecretA(~ma)]->
+[]
+
+
+/* ---------- */
+/* Properties */
+/* ---------- */
+
+
+/* Executability check: */
+//Make sure to add the action facts referred to by this lemma in your model
+//Do not change this lemma, i.e. do not add, change or remove anything (not even comments) in the following three lines.
+lemma executable:
+exists-trace "Ex #i #j A B ma mb.
+FinishedA(A, B, ma, mb)@i & FinishedB(B,A,ma,mb)@j& not (A=B)"
+
+ 
+//un-comment following line for Task 1.3
+lemma secrecyA:
+  "All n #i. SecretA(n) @i ==> (not (Ex #j. K(n)@j))"
+
+
+//un-comment following line for Task 1.3
+lemma secrecyB:
+  "All n #i. SecretB(n) @i ==> (not (Ex #j. K(n)@j))"
+
+
+//un-comment following line for Task 1.4
+lemma non_injectiveA:
+  "All a b t #i. CommitA(a,b,t) @i ==> (Ex #j. RunningB(b,a,t)@j)"
+
+
+//un-comment following line for Task 1.4
+lemma non_injectiveB:
+  "All a b t #i. CommitB(b,a,t) @i ==> (Ex #j. RunningA(a,b,t)@j)"
+
+end
