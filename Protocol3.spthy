@@ -18,19 +18,13 @@ builtins: asymmetric-encryption, symmetric-encryption, hashing
 
 /* The following rule should be annotated by the following action facts: 
 - PubKey($A, ~ska)
-*/ // TODO: Fix it
-
-
+*/ 
+// TODO: Is it correct
 rule Register_pk:
-    [ Fr(~ltk) ]
-  -->
-    [ !Ltk($A, ~ltk), !Pk($A, pk(~ltk)) ]
+    [ Fr(~skA) ]
+--[PubKey($A, ~skA)]->
+    [ !Ltk($A, ~skA), !Pk($A, pk(~skA)) ]
 
-
-    rule Get_pk:
-    [ !Pk($A, pubkey) ]
-  -->
-    [ Out(pubkey) ]
 /* The following rule should be annotated by the following action facts: 
 - RevealKey($A, ~skA)
 */
@@ -57,11 +51,11 @@ let
 in
 [Fr(~Nb), In(aenc(Na, pk(~skB))) ,!Ltk($B, ~skB), !Pk($A, pkA)]
 --[BobReceivesKey($B, $A, ~skB, pkA, ~Nb, Na)]->
-[Bob($B, $A, ~Nb, Na, Kab), Out(aenc(<~Nb, Kab>,pkA))]
+[Bob($B, $A, ~Nb, Na, Kab, ~skB), Out(aenc(<~Nb, Kab>,pkA))]
 
 
 /* The following rule should be annotated by the following action facts: 
-- 
+- AliceReceivesNb($A, $B, ~skA, ~Na, Nb, ~ma, Kab)
 */
 rule AliceReceivesNb:
 [Alice($A,$B, ~Na, ~skA), In(aenc(<Nb, Kab>,pk(~skA))), Fr(~ma)]
@@ -72,8 +66,8 @@ rule AliceReceivesNb:
 - BobReceivesMa($B, $A, ~skB, ~Nb, Na, Kab, ~mb, ma)
 */
 rule BobReceivesMa:
-[Bob($B,$A, ~Nb, Na, Kab),Fr(~mb), In(senc(pair(ma, hNb), Kab)),!Ltk($B, ~skB)]
---[BobReceivesMa($B, $A, ~skB, ~Nb, Na, Kab, ~mb, ma), Eq(h(~Nb),hNb),FinishedB($B,$A,ma,~mb),RunningB($B, $A, ~mb),SecretB(~mb),CommitB($B, $A, ma)]->
+[Bob($B,$A, ~Nb, Na, Kab, ~skB),Fr(~mb), In(senc(pair(ma, hNb), Kab))]
+--[BobReceivesMa($B, $A, ~skB, ~Nb, Na, Kab, ~mb, ma), Eq(h(~Nb),hNb),FinishedB($B,$A,ma,~mb),SecretB(~mb),RunningB($B, $A, ~mb),CommitB($B, $A, ma)]->
 [Out(senc(<~mb, h(Na)>, Kab))]
 
 /* The following rule should be annotated by the following action facts: 
@@ -81,7 +75,7 @@ rule BobReceivesMa:
 */
 rule AliceReceivesMb:
 [Alice2($A,$B,~Na, Kab, ~ma), In(senc(<mb, hNa>, Kab))]
---[Eq(h(~Na),hNa),FinishedA($A, $B,  ~ma, mb),CommitA($A, $B, mb),SecretA(~ma)]->
+--[Eq(h(~Na),hNa),FinishedA($A, $B,  ~ma, mb),SecretA(~ma),CommitA($A, $B, mb)]->
 []
 
 /* Restrictions*/
