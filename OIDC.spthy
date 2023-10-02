@@ -70,10 +70,9 @@ rule Register_User_account:
       Only_once($User, $Server)
     , Is_User($User)
     , Is_Server($Server)
-    , User_sends_credentials($User, $RP)
+    , User_sends_credentials($User, $Server)
     , Register_User_account($User, $Server, ~username, ~password) ]->
-    [ !User_account($User, $Server, ~username, ~password),
-      !PasswordLookUp($Server, ~username, ~password) ]
+    [ !User_account($User, $Server, ~username, ~password),!PasswordLookUp($Server, ~username, ~password),User0($User, $Server),Rp0($User,$Server)]
 
 
 
@@ -86,15 +85,15 @@ rule Register_User_account:
 - User_starts($User, $RP)
 */
 rule User_starts:
-    [!User_account($User, $Server, ~username, ~password)]
+    [User0($User, $RP)]
     --[User_starts($User, $RP)]->
-    [User($User, $RP,~username, ~password, 'step'),Out(<$User,'Login'>)]
+    [User($User, $RP),Out(<$User,'Login'>)]
 //The RP responds asking for credentials or choosing OIDC
 /* The following rule should be annotated by the following action facts: 
 - RP_responds($User, $RP)
 */
 rule RP_responds:
-    [In(<$User, 'Login'>)]
+    [Rp0($User,$RP),In(<$User, 'Login'>)]
     --[RP_responds($User, $RP)]->
     [Rp($RP, $User), Out('sendCredentialsOrChooseOIDC')]
 
@@ -103,7 +102,7 @@ rule RP_responds:
 - User_Chooses_Direct_Login($User, $RP, ~username, ~password)
 */
 rule User_Chooses_Direct_Login:
-    [User($User, $RP,~username, ~password, 'step'),!User_account($User, $Server, ~username, ~password), In('sendCredentialsOrChooseOIDC')] // TODO: Model has account
+    [User($User, $RP),!User_account($User, $Server, ~username, ~password), In('sendCredentialsOrChooseOIDC')] // TODO: Model has account
     --[User_Chooses_Direct_Login($User, $RP, ~username, ~password)]->
     [Out(<'username', ~username, 'password', ~password>)]
 
