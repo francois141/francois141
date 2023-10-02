@@ -19,7 +19,7 @@ builtins: symmetric-encryption, asymmetric-encryption
 rule PubKey:  
   [ Fr(~ska) ]
   --[PubKey($A, ~ska)]->
-  [ !Ltk($A, ~ska), !Pk($A, pk(~ska)), Out(pk(~ska))] // TODO: Is it correct?
+  [ !Ltk($A, ~ska), !Pk($A, pk(~ska)), Out(pk(~ska))]
   
 
 /* -------------- */
