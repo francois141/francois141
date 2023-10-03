@@ -72,7 +72,7 @@ rule Register_User_account:
     , Is_Server($Server)
     , User_sends_credentials($User, $Server)
     , Register_User_account($User, $Server, ~username, ~password) ]->
-    [ !User_account($User, $Server, ~username, ~password),!PasswordLookUp($Server, ~username, ~password),User0($User, $Server),Rp0($User,$Server)]
+    [ !User_account($User, $Server, ~username, ~password),!PasswordLookUp($Server, ~username, ~password)]
 
 
 
@@ -85,24 +85,24 @@ rule Register_User_account:
 - User_starts($User, $RP)
 */
 rule User_starts:
-    [User0($User, $RP)]
+    [!User_account($User, $RP, ~username, ~password)]
     --[User_starts($User, $RP)]->
-    [User($User, $RP),Out(<$User,'Login'>)]
+    [User1($User, $RP, ~username, ~password),Out(<$User,'Login'>)]
 //The RP responds asking for credentials or choosing OIDC
 /* The following rule should be annotated by the following action facts: 
 - RP_responds($User, $RP)
 */
 rule RP_responds:
-    [Rp0($User,$RP),In(<$User, 'Login'>)]
+    [In(<$User, 'Login'>),!User_account($User, $RP, ~username, ~password)]
     --[RP_responds($User, $RP)]->
-    [Rp($RP, $User), Out('sendCredentialsOrChooseOIDC')]
+    [Rp($User, $RP, ~username, ~password), Out('sendCredentialsOrChooseOIDC')]
 
 //If user has an account with the RP it directly sends it its credentials..
 /* The following rule should be annotated by the following action facts: 
 - User_Chooses_Direct_Login($User, $RP, ~username, ~password)
 */
 rule User_Chooses_Direct_Login:
-    [User($User, $RP),!User_account($User, $Server, ~username, ~password), In('sendCredentialsOrChooseOIDC')] // TODO: Model has account
+    [User1($User, $RP, ~username, ~password), In('sendCredentialsOrChooseOIDC')]
     --[User_Chooses_Direct_Login($User, $RP, ~username, ~password)]->
     [Out(<'username', ~username, 'password', ~password>)]
 
@@ -112,8 +112,8 @@ rule User_Chooses_Direct_Login:
 - RP_Receives_Credentials($RP, $User, ~username, ~password)
 */
 rule RP_Receives_Credentials:
-    [Rp($RP, $User),In(<'username', ~usernameLog, 'password', ~passwordLog>),!User_account($User, $Server, ~username, ~password)] 
-    --[Eq(~usernameLog, ~username), Eq(~passwordLog,~password), RP_Receives_Credentials($RP, $User, ~username, ~password),RP_Logs_User_in_Direct($RP, $User, ~username)]->
+    [Rp($User, $RP, ~username, ~password),In(<'username', ~usernameLog, 'password', ~passwordLog>)] 
+    --[Eq(~usernameLog, ~username), Eq(~passwordLog,~password), RP_Receives_Credentials($RP, $User, ~username, ~password),RP_Logs_User_in_Direct($RP, $User, ~username),RP_accepts_credentials($RP, ~username)]->
     []
 
 //If the user wants to log-in through an IdP, it indicates this to the RP
@@ -122,10 +122,10 @@ rule RP_Receives_Credentials:
 - Not_an_IdP($RP) : indicating that the $RP is not registered as IdP.
 - User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password)
 */
-/*rule User_Chooses_OIDC:
-    [User($User),In('sendCredentialsOrChooseOIDC'),!User_account($User, $Server, ~username, ~password)] 
-    --[Neq($RP,$IdP),Not_an_IdP($RP),User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password)]->
-    [User2($User, $Server, $IdP, ~username, ~password),Out(<'loginWith',$IdP>)]*/
+rule User_Chooses_OIDC:
+    [User1($User, $RP, ~username, ~password),In('sendCredentialsOrChooseOIDC')] 
+    --[Neq($RP,$IdP),Not_an_IdP($RP),User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password), User_gives_consent($User, $RP, $IdP)]->
+    [User2($User, $RP, $IdP, ~username, ~password),Out(<'loginWith',$IdP>)]
 
 // TODO: Add encryption
 //The RP answers with an Authentication Request...
@@ -134,42 +134,43 @@ rule RP_Receives_Credentials:
 */
 //Do not change the following two lines, i.e. do not add, change or remove anything (not even comments) in the following two lines.
 rule AuthRequest_RP:
-    [ In(<'loginWith', $IdP>),
+    [In(<'loginWith', $IdP>),!User_account($User, $RP, ~username, ~password),
     /*FILL IN HERE*/
-    Fr(~nonce)
+    Fr(~nonce),
+    !Pk($IdP, pb_key)
     ]
     /*FILL IN HERE*/
     --[AuthRequest_RP($RP, $User, $IdP, ~nonce)]->
-    [Out(<'authRequest', ~nonce>)]
+    [RpOICD($RP, $User, ~nonce,~username, ~password, pb_key), Out(<'authRequest', ~nonce>)]
 
 
 //...which is forwarded by the user to the IdP it had indicated
 /* The following rule should be annotated by the following action facts: 
 - AuthRequest_User($User, $RP, $IdP, ~username, ~password, nonce)
 */
-/*rule AuthRequest_User:
-    [User2($User, $Server, $IdP, ~username, ~password),In(<'authRequest', nonce>)]
+rule AuthRequest_User:
+    [User2($User, $RP, $IdP, ~username, ~password),In(<'authRequest', nonce>)]
     --[AuthRequest_User($User, $RP, $IdP, ~username, ~password, nonce)]->
-    [User3($User, $Server, $IdP, ~username, ~password),Out(<'authRequest', $RP, nonce>)]*/
+    [User3($User, $RP, $IdP, ~username, ~password, nonce),Out(<'authRequest', $RP, nonce>)]
 
 //The IdP gets the Request and asks the user to authenticate.
 /* The following rule should be annotated by the following action facts: 
 - AuthRequest_IdP($IdP, $User, $RP, nonce, ~skey)
 */
-/*rule AuthRequest_IdP:
-    [Idp0(~skey),In(<'authRequest', $RP, nonce>)]
+rule AuthRequest_IdP:
+    [!Ltk($IdP, ~skey),In(<'authRequest', $RP, nonce>)]
     --[AuthRequest_IdP($IdP, $User, $RP, nonce, ~skey)]->
-    [Idp1(~skey),Out(<'Auth', 'giveConsent', $RP>)]*/
+    [Idp1($IdP, ~skey, nonce),Out(<'Auth', 'giveConsent', $RP>)]
 
 
 //The user authenticates and gives consent.
 /* This rule should be annotated by the following action facts: 
 - User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce)
 */
-/*rule User_Authenticates:
-    [User3($User, $Server, $IdP, ~username, ~password),In(<'Auth', 'giveConsent', $RP>)]
+rule User_Authenticates:
+    [User3($User, $RP, $IdP, ~username, ~password, nonce),In(<'Auth', 'giveConsent', $RP>)]
     --[User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce)]->
-    [User4($User, $Server, $IdP, ~username, ~password),Out(<~username, ~password,'consent', $RP>)]*/
+    [User4($User, $RP, $IdP, ~username, ~password, nonce),Out(<~username, ~password,'consent', $RP>)]
 
 
 
@@ -177,41 +178,35 @@ rule AuthRequest_RP:
 /* This rule should be annotated by the following action facts: 
 - Authentication_Response_IdP($IdP, $User, $RP, ~username, ~password, nonce)
 */
-/*rule Authentication_Response_IdP:
+rule Authentication_Response_IdP:
     let token = <'idToken'
     , <'iss', $IdP>
-    , <'sub', username>
+    , <'sub', ~username>
     , <'aud', $RP>
     , <'nonce', nonce>>
     in  
-    [Idp1(~skey),In(<~usernameIn, ~passwordIN,'consent', $RP>),!User_account($User, $Server, ~username, ~password)]
-    --[Eq(~usernameIn, ~username), Eq(~passwordIN, ~password)]->
-    [Out(sign(token,~skey))]*/
+    [Idp1($IdP, ~skey, nonce),In(<~usernameIn, ~passwordIn,'consent', $RP>),!User_account($User, $Server, ~username, ~password)]
+    --[Eq(~usernameIn, ~username), Eq(~passwordIn, ~password),Authentication_Response_IdP($IdP, $User, $RP, ~username, ~password, nonce)]->
+    [Out(<token,sign(token,~skey)>)]
 
 //The User forwards the ID Token to the RP (without looking at its content!).
 /* This rule should be annotated by the following action facts: 
 - Authentication_Response_User($User, $RP, $IdP, ~username, ~password, nonce, id_token, signedtoken)
 */
-/*rule Authentication_Response_User:
-    let token = <'idToken'
-    , <'iss', $IdP>
-    , <'sub', username>
-    , <'aud', $RP>
-    , <'nonce', nonce>>
-    in
-    [User4($User, $Server, $IdP, ~username, ~password),In(sign(token,pk(~skey)))]
+rule Authentication_Response_User:
+    [User4($User, $RP, $IdP, ~username, ~password, nonce),In(<id_token,signedtoken>)]
     --[Authentication_Response_User($User, $RP, $IdP, ~username, ~password, nonce, id_token, signedtoken)]->
-    [User5($User, $Server, $IdP, ~username, ~password),Out(sign(token, pk(~skey)))]*/
+    [User5($User, $RP, $IdP, ~username, ~password),Out(<id_token,signedtoken>)]
 
 
 //The RP gets the  ID Token and validates it, logging the user in.
 /* This rule should be annotated by the following action facts: 
 - RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp)
 */
-/*rule RP_gets_IDToken:
-   [In(sign(token, pk(~skey)))]
-   --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp)]-> //,Verify(sign(token, pk(~skey),token, pk(~skey)))
-   [Rp($RP, $User)]*/
+rule RP_gets_IDToken:
+    [RpOICD($RP, $User, ~nonce,username, ~password, pk_idp), In(<id_token,signedtoken>)]
+    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp), RP_Logs_User_in_OIDC($RP, $User, username, $IdP)]-> //,Verify(sign(token, pk(~skey),token, pk(~skey)))
+    []
 
 
 
@@ -262,7 +257,7 @@ lemma executableRP:
       & not (#j = #j2)))"
 
 //Do not change this lemma, i.e. do not add, change or remove anything (not even comments) in the following eleven lines.
-/*lemma executable_IdP:
+lemma executable_IdP:
  exists-trace
   "Ex #i #j #k #m usr username rp idp id_token signedtoken pk_idp password nonce. 
     (RP_gets_IDToken(rp, usr, idp, nonce, username, id_token, signedtoken, pk_idp)@i
@@ -272,7 +267,7 @@ lemma executableRP:
     & ( not (Ex idp #k. Compromised(idp)@k) )
     & ( All #n usr2 rp2 idp2 username2 password2. 
       User_Chooses_OIDC(usr2, rp2, idp2, username2, password2)@n
-        ==> #j = #n )"*/
+        ==> #j = #n )"
 
 
 //Security properties:
@@ -291,17 +286,18 @@ lemma executableRP:
 //an RP $RP accepts a username-password pair, only if the user corresponding to that username has earlier sent these credentials to that RP
 //un-comment following line for Task 1.2
 lemma User_gives_Credentials [heuristic=S] :
-  "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==> (Ex #j . User_sends_credentials(user, rp) @ j)"
+    "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==> (Ex #j . User_sends_credentials(user, rp) @ j)"
 
 //an RP $RP should receive and accept an ID Token from a non-compromised IdP $IdP for username only if the user corresponding to that username has previously consented to the  $IdP to give $RP such ID Token.
 //un-comment following line for Task 1.2
-//lemma User_gives_Consent_to_RP_getting_IDToken [heuristic=S] :
-    /*FILL IN HERE*/
+lemma User_gives_Consent_to_RP_getting_IDToken [heuristic=S] :
+    "All rp user idp username #i.  RP_Logs_User_in_OIDC(rp, user, username, idp) @i ==> (Ex #j . User_gives_consent(user, rp, idp) @ j)"
+   
 
 //An RP $RP logs a user in via Direct Login with a certain username, only if this user is the actual owner of the username for that RP.
 //un-comment following line for Task 1.2
-//lemma User_Logged_In_Direct [heuristic=S] :
-/*FILL IN HERE*/
+lemma User_Logged_In_Direct [heuristic=S] :
+    "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==> (Ex #j . Username_belongs_to(username, user, rp) @ j)"
 
 //An RP logs a user in with a username username received in a valid ID Token from a non-compromised $IdP, only if the user is the actual owner of the username username with that IdP.
 //un-comment following line for Task 1.2
@@ -310,8 +306,9 @@ lemma User_gives_Credentials [heuristic=S] :
 
 // If a RP receives valid credentials (i.e. username and password pair) for user $User, it cannot validate the same credentials from different User $User2.
 //un-comment following line for Task 1.2
-//lemma Unique_Credentials [heuristic = S] :
-    /*FILL IN HERE*/
+lemma Unique_Credentials [heuristic = S] :
+    "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==>  not (Ex user2 #j . RP_Logs_User_in_Direct(rp, user2, username) @ j)"
+ 
 
 
 //If a RP receives a valid ID Token from a non-compromised IdP $IdP for user $User, it cannot validate the same ID Token for a different User $User2
