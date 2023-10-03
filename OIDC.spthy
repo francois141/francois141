@@ -205,7 +205,7 @@ rule Authentication_Response_User:
 */
 rule RP_gets_IDToken:
     [RpOICD($RP, $User, ~nonce,username, ~password, pk_idp), In(<id_token,signedtoken>)]
-    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp), RP_Logs_User_in_OIDC($RP, $User, username, $IdP)]-> //,Verify(sign(token, pk(~skey),token, pk(~skey)))
+    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Verify(signedtoken, id_token, pk_idp)]-> //,Verify(sign(token, pk(~skey),token, pk(~skey)))
     []
 
 
