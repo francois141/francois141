@@ -32,11 +32,11 @@ rule IdPgeneratesKeyPair:
 - Compromised($A) : indicating agent $A got compromised 
                             and their secret key was published.
 */
-rule CompromiseAgent:
+//rule CompromiseAgent:
 /*FILL IN HERE*/   
-[!Ltk($A, ~skey)]
+/*[!Ltk($A, ~skey)]
 --[Compromised($A)]->
-[Out(~skey)]
+[Out(~skey)]*/
 
 
 // Secure Channel rules.
@@ -140,7 +140,7 @@ rule AuthRequest_RP:
     ]
     /*FILL IN HERE*/
     --[AuthRequest_RP($RP, $User, $IdP, ~nonce)]->
-    [RpOICD($RP, $User, ~nonce,pb_key), Out(<'authRequest', ~nonce>)]
+    [RpOICD($RP, $User,$IdP, ~nonce,pb_key), Out(<'authRequest', ~nonce>)]
 
 
 //...which is forwarded by the user to the IdP it had indicated
@@ -167,8 +167,8 @@ rule AuthRequest_IdP:
 - User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce)
 */
 rule User_Authenticates:
-    [User3($User, $RP, $IdP, nonce),In_S($IdP,$User,<'Auth', 'giveConsent', $RP>)]
-    --[User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce)]->
+    [User3($User, $RP, $IdP, nonce),In_S($IdP,$User,<'Auth', 'giveConsent', $RP>),  !User_account($User, $IdP, ~username, ~password)]
+    --[User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce), User_gives_consent($User,$RP, $IdP)]->
     [User4($User, $RP, $IdP, ~username, ~password, nonce),Out_S($User,$IdP,<~username, ~password,'consent', $RP>)]
 
 
@@ -184,8 +184,8 @@ rule Authentication_Response_IdP:
     , <'aud', $RP>
     , <'nonce', nonce>>
     in  
-    [Idp1($IdP, ~skey, nonce),In_S($User,$IdP,<~usernameIn, ~passwordIn,'consent', $RP>),!User_account($User, $Server, ~username, ~password)]
-    --[Eq(~usernameIn, ~username), Eq(~passwordIn, ~password),Authentication_Response_IdP($IdP, $User, $RP, ~username, ~password, nonce)]->
+    [Idp1($IdP, ~skey, nonce),In_S($User,$IdP,<~username, ~password,'consent', $RP>),!PasswordLookUp($IdP, ~username, ~password)]
+    --[Authentication_Response_IdP($IdP, $User, $RP, ~username, ~password, nonce)]->
     [Out_S($IdP,$User,<token,sign(token,~skey)>)]
     
 //The User forwards the ID Token to the RP (without looking at its content!).
@@ -195,7 +195,7 @@ rule Authentication_Response_IdP:
 rule Authentication_Response_User:
     [User4($User, $RP, $IdP, ~username, ~password, nonce),In_S($IdP,$User,<id_token,signedtoken>)]
     --[Authentication_Response_User($User, $RP, $IdP, ~username, ~password, nonce, id_token, signedtoken)]->
-    [User5($User, $RP, $IdP, ~username, ~password),Out(<id_token,signedtoken>)]
+    [Out(<id_token,signedtoken>)]
 
 
 //The RP gets the  ID Token and validates it, logging the user in.
@@ -203,8 +203,14 @@ rule Authentication_Response_User:
 - RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp)
 */
 rule RP_gets_IDToken:
-    [RpOICD($RP, $User, ~nonce,pk_idp), In(<id_token,signedtoken>)]
-    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Verify(signedtoken, id_token, pk_idp),RP_gets_IDToken_for_user($RP, $User, id_token, $IdP)]-> //,Verify(sign(token, pk(~skey),token, pk(~skey)))
+    let token = <'idToken'
+        , <'iss', $IdP>
+        , <'sub', username>
+        , <'aud', $RP>
+        , <'nonce', ~nonce>>
+    in  
+    [RpOICD($RP, $User,$IdP, ~nonce,pb_key), In(<token,signedtoken>)]
+    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, token, signedtoken, pb_key), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Eq(verify(signedtoken, token, pb_key),true),RP_gets_IDToken_for_user($RP, $User, token, $IdP)]->
     []
 
 
@@ -289,7 +295,7 @@ lemma User_gives_Credentials [heuristic=S] :
 //an RP $RP should receive and accept an ID Token from a non-compromised IdP $IdP for username only if the user corresponding to that username has previously consented to the  $IdP to give $RP such ID Token.
 //un-comment following line for Task 1.2
 lemma User_gives_Consent_to_RP_getting_IDToken [heuristic=S] :
-    "All rp user idp username #i.  RP_Logs_User_in_OIDC(rp, user, username, idp) @i ==> (Ex #j . User_gives_consent(user, rp, idp) @ j)"
+    "All rp idp username #i.  RP_gets_IDToken_for_username(rp, username, idp) @i ==> (Ex user #j #l . User_gives_consent(user, rp, idp) @ j & Username_belongs_to(username, user, Idp) @ l)" // TODO: Vérifier ce lemme
    
 //An RP $RP logs a user in via Direct Login with a certain username, only if this user is the actual owner of the username for that RP.
 //un-comment following line for Task 1.2
@@ -304,7 +310,7 @@ lemma User_Logged_In_OIDC [heuristic=S] :
 // If a RP receives valid credentials (i.e. username and password pair) for user $User, it cannot validate the same credentials from different User $User2.
 //un-comment following line for Task 1.2
 lemma Unique_Credentials [heuristic = S] :
-    "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==>  not (Ex user2 #j . RP_Logs_User_in_Direct(rp, user2, username) @ j)"
+    "All rp user user2 username #i #j.  (RP_Logs_User_in_Direct(rp, user, username) @i &  RP_Logs_User_in_Direct(rp, user2, username) @j)==> (user = user2)"
  
 //If a RP receives a valid ID Token from a non-compromised IdP $IdP for user $User, it cannot validate the same ID Token for a different User $User2
 //un-comment following line for Task 1.2
