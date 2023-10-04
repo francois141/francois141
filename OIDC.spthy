@@ -46,7 +46,7 @@ rule CompromiseAgent:
 // Out_S($A,$B,x) indicates that agent $A is sending to agent $B$ a message x. 
 // In_S($A,$B,x) indicates that agent $B is receiving from agent $A$ the message x. 
 //Do not change the following two rules, i.e. do not add, change or remove anything (not even comments) in the following nine lines.
-/*rule ChanOut_S:
+rule ChanOut_S:
     [ Out_S($A,$B,x) ]
   --[ ChanOut_S($A,$B,x) ]->
     [ Sec($A,$B,x) ]
@@ -54,7 +54,7 @@ rule CompromiseAgent:
 rule ChanIn_S:
     [ Sec($A,$B,x) ]
   --[ ChanIn_S($A,$B,x) ]->
-    [ In_S($A,$B,x) ]*/
+    [ In_S($A,$B,x) ]
 
 
 /*Initialization Rules*/
@@ -69,7 +69,6 @@ rule Register_User_account:
       Only_once($User, $Server)
     , Is_User($User)
     , Is_Server($Server)
-    , User_sends_credentials($User, $Server)
     , Register_User_account($User, $Server, ~username, ~password) ]->
     [ !User_account($User, $Server, ~username, ~password),!PasswordLookUp($Server, ~username, ~password)]
 
@@ -84,9 +83,9 @@ rule Register_User_account:
 - User_starts($User, $RP)
 */
 rule User_starts:
-    [!User_account($User, $RP, ~username, ~password)]
+    []
     --[User_starts($User, $RP)]->
-    [User1($User, $RP, ~username, ~password),Out(<$User,'Login'>)]
+    [User1($User, $RP),Out(<$User,'Login'>)]
 //The RP responds asking for credentials or choosing OIDC
 /* The following rule should be annotated by the following action facts: 
 - RP_responds($User, $RP)
@@ -101,8 +100,8 @@ rule RP_responds:
 - User_Chooses_Direct_Login($User, $RP, ~username, ~password)
 */
 rule User_Chooses_Direct_Login:
-    [User1($User, $RP, ~username, ~password), In('sendCredentialsOrChooseOIDC')]
-    --[User_Chooses_Direct_Login($User, $RP, ~username, ~password)]->
+    [User1($User, $RP), In('sendCredentialsOrChooseOIDC'),!User_account($User, $RP, ~username, ~password)]
+    --[User_Chooses_Direct_Login($User, $RP, ~username, ~password),User_sends_credentials($User, $Server)]->
     [Out(<'username', ~username, 'password', ~password>)]
 
 
@@ -111,8 +110,8 @@ rule User_Chooses_Direct_Login:
 - RP_Receives_Credentials($RP, $User, ~username, ~password)
 */
 rule RP_Receives_Credentials:
-    [Rp($User, $RP),!PasswordLookUp($RP, ~username, ~password),In(<'username', ~usernameLog, 'password', ~passwordLog>)] 
-    --[Eq(~usernameLog, ~username), Eq(~passwordLog,~password), RP_Receives_Credentials($RP, $User, ~username, ~password),RP_Logs_User_in_Direct($RP, $User, ~username),RP_accepts_credentials($RP, ~username)]->
+    [Rp($User, $RP),!PasswordLookUp($RP, ~username, ~password),In(<'username', ~username, 'password', ~password>)] 
+    --[RP_Receives_Credentials($RP, $User, ~username, ~password),RP_Logs_User_in_Direct($RP, $User, ~username),RP_accepts_credentials($RP, ~username)]->
     []
 
 //If the user wants to log-in through an IdP, it indicates this to the RP
@@ -122,25 +121,26 @@ rule RP_Receives_Credentials:
 - User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password)
 */
 rule User_Chooses_OIDC:
-    [User1($User, $RP, ~username, ~password),In('sendCredentialsOrChooseOIDC')] 
-    --[Neq($RP,$IdP),Not_an_IdP($RP),User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password), User_gives_consent($User, $RP, $IdP)]->
-    [User2($User, $RP, $IdP, ~username, ~password),Out(<'loginWith',$IdP>)]
+    [User1($User, $RP),In('sendCredentialsOrChooseOIDC'), !User_account($User, $IdP, ~username, ~password)] 
+    --[Neq($RP,$IdP),Not_an_IdP($RP),User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password)]-> // , User_gives_consent($User, $RP, $IdP)
+    [User2($User, $RP, $IdP),Out(<'loginWith',$IdP>)]
 
-// TODO: Add encryption
+
 //The RP answers with an Authentication Request...
 /* The following rule should be annotated by the following action facts: 
 - AuthRequest_RP($RP, $User, $IdP, ~nonce)
 */
 //Do not change the following two lines, i.e. do not add, change or remove anything (not even comments) in the following two lines.
 rule AuthRequest_RP:
-    [In(<'loginWith', $IdP>),!User_account($User, $RP, ~username, ~password),
+    [In(<'loginWith', $IdP>),
     /*FILL IN HERE*/
     Fr(~nonce),
+    Rp($User, $RP),
     !Pk($IdP, pb_key)
     ]
     /*FILL IN HERE*/
     --[AuthRequest_RP($RP, $User, $IdP, ~nonce)]->
-    [RpOICD($RP, $User, ~nonce,~username, ~password, pb_key), Out(<'authRequest', ~nonce>)]
+    [RpOICD($RP, $User, ~nonce,pb_key), Out(<'authRequest', ~nonce>)]
 
 
 //...which is forwarded by the user to the IdP it had indicated
@@ -148,18 +148,18 @@ rule AuthRequest_RP:
 - AuthRequest_User($User, $RP, $IdP, ~username, ~password, nonce)
 */
 rule AuthRequest_User:
-    [User2($User, $RP, $IdP, ~username, ~password),In(<'authRequest', nonce>)]
+    [User2($User, $RP, $IdP),In(<'authRequest', nonce>), !User_account($User, $IdP, ~username, ~password)]
     --[AuthRequest_User($User, $RP, $IdP, ~username, ~password, nonce)]->
-    [User3($User, $RP, $IdP, ~username, ~password, nonce),Out(<'authRequest', $RP, nonce>)]
+    [User3($User, $RP, $IdP, nonce),Out_S($User,$IdP,<'authRequest', $RP, nonce>)]
 
 //The IdP gets the Request and asks the user to authenticate.
 /* The following rule should be annotated by the following action facts: 
 - AuthRequest_IdP($IdP, $User, $RP, nonce, ~skey)
 */
 rule AuthRequest_IdP:
-    [!Ltk($IdP, ~skey),In(<'authRequest', $RP, nonce>)]
+    [!Ltk($IdP, ~skey),In_S($User,$IdP,<'authRequest', $RP, nonce>)]
     --[AuthRequest_IdP($IdP, $User, $RP, nonce, ~skey)]->
-    [Idp1($IdP, ~skey, nonce),Out(<'Auth', 'giveConsent', $RP>)]
+    [Idp1($IdP, ~skey, nonce),Out_S($IdP,$User,<'Auth', 'giveConsent', $RP>)]
 
 
 //The user authenticates and gives consent.
@@ -167,9 +167,9 @@ rule AuthRequest_IdP:
 - User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce)
 */
 rule User_Authenticates:
-    [User3($User, $RP, $IdP, ~username, ~password, nonce),In(<'Auth', 'giveConsent', $RP>)]
+    [User3($User, $RP, $IdP, nonce),In_S($IdP,$User,<'Auth', 'giveConsent', $RP>)]
     --[User_Authenticates($User, $RP, $IdP, ~username, ~password, nonce)]->
-    [User4($User, $RP, $IdP, ~username, ~password, nonce),Out(<~username, ~password,'consent', $RP>)]
+    [User4($User, $RP, $IdP, ~username, ~password, nonce),Out_S($User,$IdP,<~username, ~password,'consent', $RP>)]
 
 
 
@@ -184,16 +184,16 @@ rule Authentication_Response_IdP:
     , <'aud', $RP>
     , <'nonce', nonce>>
     in  
-    [Idp1($IdP, ~skey, nonce),In(<~usernameIn, ~passwordIn,'consent', $RP>),!User_account($User, $Server, ~username, ~password)]
+    [Idp1($IdP, ~skey, nonce),In_S($User,$IdP,<~usernameIn, ~passwordIn,'consent', $RP>),!User_account($User, $Server, ~username, ~password)]
     --[Eq(~usernameIn, ~username), Eq(~passwordIn, ~password),Authentication_Response_IdP($IdP, $User, $RP, ~username, ~password, nonce)]->
-    [Out(<token,sign(token,~skey)>)]
+    [Out_S($IdP,$User,<token,sign(token,~skey)>)]
     
 //The User forwards the ID Token to the RP (without looking at its content!).
 /* This rule should be annotated by the following action facts: 
 - Authentication_Response_User($User, $RP, $IdP, ~username, ~password, nonce, id_token, signedtoken)
 */
 rule Authentication_Response_User:
-    [User4($User, $RP, $IdP, ~username, ~password, nonce),In(<id_token,signedtoken>)]
+    [User4($User, $RP, $IdP, ~username, ~password, nonce),In_S($IdP,$User,<id_token,signedtoken>)]
     --[Authentication_Response_User($User, $RP, $IdP, ~username, ~password, nonce, id_token, signedtoken)]->
     [User5($User, $RP, $IdP, ~username, ~password),Out(<id_token,signedtoken>)]
 
@@ -203,15 +203,15 @@ rule Authentication_Response_User:
 - RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp)
 */
 rule RP_gets_IDToken:
-    [RpOICD($RP, $User, ~nonce,username, ~password, pk_idp), In(<id_token,signedtoken>)]
+    [RpOICD($RP, $User, ~nonce,pk_idp), In(<id_token,signedtoken>)]
     --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Verify(signedtoken, id_token, pk_idp),RP_gets_IDToken_for_user($RP, $User, id_token, $IdP)]-> //,Verify(sign(token, pk(~skey),token, pk(~skey)))
     []
 
 
 /*Restrictions*/
 //Equality or Inequality - comment out if not needed:
-/*restriction Inequality:
-    "All x #i. Neq(x,x) @ #i ==> F"*/
+restriction Inequality:
+    "All x #i. Neq(x,x) @ #i ==> F"
 
 restriction Equality:
   "All x y #i. Eq(x,y) @#i ==> x = y"
