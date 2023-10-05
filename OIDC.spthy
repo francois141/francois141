@@ -37,10 +37,6 @@ rule CompromiseAgent:
 [Out(~skey)]
 
 
-// Secure Channel rules.
-// We assume that the User and the IdP communicate using TLS. We model communication with TLS with a secure channel
-// Communication between the User and the RP is however not assumed to go through TLS. 
-
 // Out_S($A,$B,x) indicates that agent $A is sending to agent $B$ a message x. 
 // In_S($A,$B,x) indicates that agent $B is receiving from agent $A$ the message x. 
 //Do not change the following two rules, i.e. do not add, change or remove anything (not even comments) in the following nine lines.
@@ -53,7 +49,6 @@ rule ChanIn_S:
     [ Sec($A,$B,x) ]
   --[ ChanIn_S($A,$B,x) ]->
     [ In_S($A,$B,x) ]
-
 
 /*Initialization Rules*/
 
@@ -68,9 +63,8 @@ rule Register_User_account:
     , Is_User($User)
     , Is_Server($Server)
     , Register_User_account($User, $Server, ~username, ~password) ]->
-    [ !User_account($User, $Server, ~username, ~password),!PasswordLookUp($Server, ~username, ~password)]
-
-
+    [ !User_account($User, $Server, ~username, ~password),
+      !PasswordLookUp($Server, ~username, ~password) ]
 
 /* Protocol Rules */
 
@@ -120,7 +114,7 @@ rule RP_Receives_Credentials:
 */
 rule User_Chooses_OIDC:
     [User1($User, $RP),In('sendCredentialsOrChooseOIDC'), !User_account($User, $IdP, ~username, ~password)] 
-    --[Neq($RP,$IdP),Not_an_IdP($RP),User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password)]-> // , User_gives_consent($User, $RP, $IdP)
+    --[Neq($RP,$IdP),Not_an_IdP($RP),User_Chooses_OIDC($User, $RP, $IdP, ~username, ~password)]->
     [User2($User, $RP, $IdP),Out(<'loginWith',$IdP>)]
 
 
@@ -201,14 +195,14 @@ rule Authentication_Response_User:
 - RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pk_idp)
 */
 rule RP_gets_IDToken:
-    let token = <'idToken'
+    let id_token = <'idToken'
         , <'iss', $IdP>
         , <'sub', username>
         , <'aud', $RP>
         , <'nonce', ~nonce>>
     in  
-    [RpOICD($RP, $User,$IdP, ~nonce,pb_key), In(<token,signedtoken>)]
-    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, token, signedtoken, pb_key), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Eq(verify(signedtoken, token, pb_key),true),RP_gets_IDToken_for_user($RP, $User, token, $IdP),RP_gets_IDToken_for_username($RP, username, $IdP)]->
+    [RpOICD($RP, $User,$IdP, ~nonce,pb_key), In(<id_token,signedtoken>)]
+    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pb_key), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Eq(verify(signedtoken, id_token, pb_key),true),RP_gets_IDToken_for_user($RP, $User, id_token, $IdP),RP_gets_IDToken_for_username($RP, username, $IdP)]->
     []
 
 
@@ -291,7 +285,7 @@ lemma User_gives_Credentials [heuristic=S] :
     "All rp user username #i #l . (RP_accepts_credentials(rp, username)@i & Username_belongs_to(username, user, rp)@l)  ==> (Ex #j . User_sends_credentials(user, rp) @ j)"
 
 //an RP $RP should receive and accept an ID Token from a non-compromised IdP $IdP for username only if the user corresponding to that username has previously consented to the  $IdP to give $RP such ID Token.
-//un-comment following line for Task 1.2
+//un-comment following line for Task 1.2D
 lemma User_gives_Consent_to_RP_getting_IDToken [heuristic=S] :
     "All rp idp username #i.  RP_gets_IDToken_for_username(rp, username, idp) @i ==> ((Ex user #j #l . (User_gives_consent(user, rp, idp) @ j & Username_belongs_to(username, user, idp) @ l)) | Ex #j . Compromised(idp)@j )" // TODO: Vérifier ce lemme
    
