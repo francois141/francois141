@@ -8,7 +8,7 @@ begin
 /* Load the built-in encryption theories */
 //Do not change the following two lines, i.e. do not add, change or remove anything (not even comments) in the following two lines.
 functions: f/2
-builtins: asymmetric-encryption, symmetric-encryption, hashing
+builtins: asymmetric-encryption, symmetric-encryption, hashing 
 
 
 
@@ -18,9 +18,9 @@ builtins: asymmetric-encryption, symmetric-encryption, hashing
 
 /* The following rule should be annotated by the following action facts: 
 - PubKey($A, ~ska)
-*/ 
-// TODO: Is it correct
-rule Register_pk:
+*/
+rule PubKey:  
+/*FILL IN HERE*/
     [ Fr(~skA) ]
 --[PubKey($A, ~skA)]->
     [ !Ltk($A, ~skA), !Pk($A, pk(~skA)) , Out(pk(~skA))]

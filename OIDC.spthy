@@ -37,6 +37,10 @@ rule CompromiseAgent:
 [Out(~skey)]
 
 
+// Secure Channel rules.
+// We assume that the User and the IdP communicate using TLS. We model communication with TLS with a secure channel
+// Communication between the User and the RP is however not assumed to go through TLS. 
+
 // Out_S($A,$B,x) indicates that agent $A is sending to agent $B$ a message x. 
 // In_S($A,$B,x) indicates that agent $B is receiving from agent $A$ the message x. 
 //Do not change the following two rules, i.e. do not add, change or remove anything (not even comments) in the following nine lines.
@@ -285,7 +289,7 @@ lemma User_gives_Credentials [heuristic=S] :
     "All rp user username #i #l . (RP_accepts_credentials(rp, username)@i & Username_belongs_to(username, user, rp)@l)  ==> (Ex #j . User_sends_credentials(user, rp) @ j)"
 
 //an RP $RP should receive and accept an ID Token from a non-compromised IdP $IdP for username only if the user corresponding to that username has previously consented to the  $IdP to give $RP such ID Token.
-//un-comment following line for Task 1.2D
+//un-comment following line for Task 1.2
 lemma User_gives_Consent_to_RP_getting_IDToken [heuristic=S] :
     "All rp idp username #i.  RP_gets_IDToken_for_username(rp, username, idp) @i ==> ((Ex user #j #l . (User_gives_consent(user, rp, idp) @ j & Username_belongs_to(username, user, idp) @ l)) | Ex #j . Compromised(idp)@j )" // TODO: Vérifier ce lemme
    
