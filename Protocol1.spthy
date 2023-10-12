@@ -32,7 +32,7 @@ rule ShareKey:  // share a key pair between two parties.
 rule AliceSends:
 [Fr(~ma), !SymetricKey($A,$B, kAB)]
 --[AliceSends($A, $B, kAB, ~ma),RunningA($A, $B, ~ma)]->
-[Out(senc(~ma,kAB)),Alice2($A,$B, kAB, ~ma)]
+[Alice2($A,$B, kAB, ~ma),Out(senc(~ma,kAB))]
 
 
 /* The following rule should be annotated by the following action facts: 
@@ -47,7 +47,7 @@ rule BobReceivesAndSends:
 - AliceReceives($A, $B, kAB, ~ma, mb)
 */
 rule AliceReceives:
-[In(senc(mb, kAB)), Alice2($A,$B, kAB,~ma)]
+[Alice2($A,$B, kAB,~ma),In(senc(mb, kAB))]
 --[AliceReceives($A, $B, kAB, ~ma, mb),FinishedA($A, $B, ~ma, mb),SecretA(~ma),CommitA($A, $B, mb)]->
 []
 

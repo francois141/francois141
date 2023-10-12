@@ -42,7 +42,7 @@ rule Reveal_ltk:
 rule AliceSendsKey:
 [Fr(~Na), !Ltk($A, ~skA), !Pk($B, pkB)]
 --[AliceSendsKey($A, $B, ~skA, pkB, ~Na), Honest($A), Honest($B)]->
-[Alice($A,$B, ~Na, ~skA), Out(aenc(~Na, pkB))]
+[Alice($A,$B, ~Na, ~skA), Out(<$A,aenc(~Na, pkB)>)]
 
 /* The following rule should be annotated by the following action facts: 
 - BobReceivesKey($B, $A, ~skB, pkA, ~Nb, Na)
@@ -51,7 +51,7 @@ rule BobReceivesKey:
 let 
   Kab = f(Na, ~Nb)
 in
-[Fr(~Nb), In(aenc(Na, pk(~skB))) ,!Ltk($B, ~skB), !Pk($A, pkA)]
+[Fr(~Nb), In(<$A,aenc(Na, pk(~skB))>) ,!Ltk($B, ~skB), !Pk($A, pkA)]
 --[BobReceivesKey($B, $A, ~skB, pkA, ~Nb, Na), Honest($A), Honest($B)]->
 [Bob($B, $A, ~Nb, Na, Kab, ~skB), Out(aenc(<~Nb, Kab>,pkA))]
 
@@ -62,7 +62,7 @@ in
 rule AliceReceivesNb:
 [Alice($A,$B, ~Na, ~skA), In(aenc(<Nb, Kab>,pk(~skA))), Fr(~ma)]
 --[AliceReceivesNb($A, $B, ~skA, ~Na, Nb, ~ma, Kab), Eq(Kab,f(~Na, Nb)),RunningA($A, $B, ~ma), Honest($A), Honest($B)]->
-[Out(senc(pair(~ma, h(Nb)), Kab)), Alice2($A,$B,~Na, Kab, ~ma)]
+[Out(senc(pair(~ma, h(Nb)), Kab)), Alice2($A,$B,~Na, Kab, ~ma, ~skA)]
 
 /* The following rule should be annotated by the following action facts: 
 - BobReceivesMa($B, $A, ~skB, ~Nb, Na, Kab, ~mb, ma)
@@ -76,8 +76,8 @@ rule BobReceivesMa:
 - AliceReceivesMb($A, $B, ~skA, ~Na, ~ma, Kab)
 */
 rule AliceReceivesMb:
-[Alice2($A,$B,~Na, Kab, ~ma), In(senc(<mb, hNa>, Kab))]
---[Eq(h(~Na),hNa),FinishedA($A, $B,  ~ma, mb),SecretA(~ma),CommitA($A, $B, mb), Honest($A), Honest($B)]->
+[Alice2($A,$B,~Na, Kab, ~ma, ~skA), In(senc(<mb, hNa>, Kab))]
+--[AliceReceivesMb($A, $B, ~skA, ~Na, ~ma, Kab),Eq(h(~Na),hNa),FinishedA($A, $B,  ~ma, mb),SecretA(~ma),CommitA($A, $B, mb), Honest($A), Honest($B)]->
 []
 
 /* Restrictions*/

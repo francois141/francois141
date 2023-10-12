@@ -206,7 +206,11 @@ rule RP_gets_IDToken:
         , <'nonce', ~nonce>>
     in  
     [RpOICD($RP, $User,$IdP, ~nonce,pb_key), In(<id_token,signedtoken>)]
-    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pb_key), RP_Logs_User_in_OIDC($RP, $User, username, $IdP), Eq(verify(signedtoken, id_token, pb_key),true),RP_gets_IDToken_for_user($RP, $User, id_token, $IdP),RP_gets_IDToken_for_username($RP, username, $IdP)]->
+    --[RP_gets_IDToken($RP, $User, $IdP, ~nonce, username, id_token, signedtoken, pb_key), 
+        RP_Logs_User_in_OIDC($RP, $User, username, $IdP), 
+        Eq(verify(signedtoken, id_token, pb_key),true),
+        RP_gets_IDToken_for_user($RP, $User, id_token, $IdP),
+        RP_gets_IDToken_for_username($RP, username, $IdP)]->
     []
 
 
@@ -286,7 +290,7 @@ lemma executable_IdP:
 //an RP $RP accepts a username-password pair, only if the user corresponding to that username has earlier sent these credentials to that RP
 //un-comment following line for Task 1.2
 lemma User_gives_Credentials [heuristic=S] :
-    "All rp user username #i #l . (RP_accepts_credentials(rp, username)@i & Username_belongs_to(username, user, rp)@l)  ==> (Ex #j . User_sends_credentials(user, rp) @ j)"
+    "All rp username #i. (RP_accepts_credentials(rp, username)@i)  ==> (Ex user #j #k. Username_belongs_to(username, user, rp)@j & User_sends_credentials(user, rp) @ k)"
 
 //an RP $RP should receive and accept an ID Token from a non-compromised IdP $IdP for username only if the user corresponding to that username has previously consented to the  $IdP to give $RP such ID Token.
 //un-comment following line for Task 1.2

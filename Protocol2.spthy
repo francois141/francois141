@@ -39,7 +39,7 @@ rule AliceSends:
 */
 rule BobReceivesAndSends:
 [Fr(~mb),In(<$A,aenc(kAB, pk(~skb)),senc(ma, kAB)>),!Ltk($B, ~skb)]
---[BobReceived($B, $A, ~mb, ma, kAB, ~skb),FinishedB($B,$A,ma,~mb),SecretB(~mb),RunningB($B, $A, ~mb),CommitB($A, $B, ma)]->
+--[BobReceived($B, $A, ~mb, ma, kAB, ~skb),FinishedB($B,$A,ma,~mb),SecretB(~mb),RunningB($B, $A, ~mb),CommitB($B, $A, ma)]->
 [Out(senc(~mb, kAB))]
 
 
