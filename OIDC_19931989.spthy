@@ -290,22 +290,22 @@ lemma executable_IdP:
 //an RP $RP accepts a username-password pair, only if the user corresponding to that username has earlier sent these credentials to that RP
 //un-comment following line for Task 1.2
 lemma User_gives_Credentials [heuristic=S] :
-    "All rp username #i. (RP_accepts_credentials(rp, username)@i)  ==> (Ex user #j #k. Username_belongs_to(username, user, rp)@j & User_sends_credentials(user, rp) @ k)"
+    "All rp username #i. (RP_accepts_credentials(rp, username)@i)  ==> (Ex user #j #k. Username_belongs_to(username, user, rp)@j & User_sends_credentials(user, rp) @ k & (j < k) & (k < i))"
 
 //an RP $RP should receive and accept an ID Token from a non-compromised IdP $IdP for username only if the user corresponding to that username has previously consented to the  $IdP to give $RP such ID Token.
 //un-comment following line for Task 1.2
 lemma User_gives_Consent_to_RP_getting_IDToken [heuristic=S] :
-    "All rp idp username #i.  RP_gets_IDToken_for_username(rp, username, idp) @i ==> ((Ex user #j #l . (User_gives_consent(user, rp, idp) @ j & Username_belongs_to(username, user, idp) @ l)) | Ex #j . Compromised(idp)@j )" // TODO: Vérifier ce lemme
+    "All rp idp username #i.  RP_gets_IDToken_for_username(rp, username, idp) @i ==> ((Ex user #j #l . Username_belongs_to(username, user, idp) @ l & User_gives_consent(user, rp, idp) @ j & (l < j) & (j < i)) | Ex #j . Compromised(idp)@j )"
    
 //An RP $RP logs a user in via Direct Login with a certain username, only if this user is the actual owner of the username for that RP.
 //un-comment following line for Task 1.2
 lemma User_Logged_In_Direct [heuristic=S] :
-    "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==> (Ex #j . Username_belongs_to(username, user, rp) @ j)"
+    "All rp user username #i.  RP_Logs_User_in_Direct(rp, user, username) @i ==> (Ex #j . Username_belongs_to(username, user, rp) @ j & (j < i))"
 
 //An RP logs a user in with a username username received in a valid ID Token from a non-compromised $IdP, only if the user is the actual owner of the username username with that IdP.
 //un-comment following line for Task 1.2
 lemma User_Logged_In_OIDC [heuristic=S] :
-    "All rp user username idp #i.  RP_Logs_User_in_OIDC(rp, user, username, idp) @i ==>  ((Ex #j . Username_belongs_to(username, user, idp) @ j)|Ex #j . Compromised(idp)@j )"
+    "All rp user username idp #i.  RP_Logs_User_in_OIDC(rp, user, username, idp) @i ==>  ((Ex #j . Username_belongs_to(username, user, idp) @ j & (j < i))|Ex #j . Compromised(idp)@j)"
 
 // If a RP receives valid credentials (i.e. username and password pair) for user $User, it cannot validate the same credentials from different User $User2.
 //un-comment following line for Task 1.2
