@@ -61,7 +61,7 @@ in
 */
 rule AliceReceivesNb:
 [Alice($A,$B, ~Na, ~skA), In(aenc(<Nb, Kab>,pk(~skA))), Fr(~ma)]
---[AliceReceivesNb($A, $B, ~skA, ~Na, Nb, ~ma, Kab), Eq(Kab,f(~Na, Nb)),RunningA($A, $B, ~ma)]->
+--[AliceReceivesNb($A, $B, ~skA, ~Na, Nb, ~ma, Kab), Eq(Kab,f(~Na, Nb)),RunningA($A, $B, ~ma), Honest($A), Honest($B)]->
 [Out(senc(pair(~ma, h(Nb)), Kab)), Alice2($A,$B,~Na, Kab, ~ma, ~skA)]
 
 /* The following rule should be annotated by the following action facts: 
