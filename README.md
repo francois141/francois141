@@ -1,6 +1,6 @@
 # Welcome to my page, my name is François Costa 👋 
 
-## I am a master student in computer science at ETHZ.
+## I am a master student in computer science at ETHZ and incoming software engineer intern at Citadel 
 
 - 🔭 I’m currently working on the project for my master's degree
 - 🌱 I’m currently learning low level, high performance programming and algorithms
