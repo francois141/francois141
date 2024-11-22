@@ -1,8 +1,8 @@
 # Welcome to my page, my name is François Costa 👋 
 
-## I am a master student in computer science at ETHZ and incoming software engineer intern at Citadel 
+## I am a research assistant at EPFL!
 
-- 🔭 I’m currently working on the project for my master's degree
+- 🔭 I’m currently working on Miralis, a firmware emulator
 - 🌱 I’m currently learning low level, high performance programming and algorithms
 - 📫 How to reach me: fcosta@ethz.ch
 - ⚡ Fun fact: The hardest climb I did with my bike https://fr.wikipedia.org/wiki/Col_de_la_Croix_(Vaud)
