@@ -1,8 +1,8 @@
 # Welcome to my page, my name is François Costa 👋 
 
-## I am a research assistant at EPFL!
+## I am a research assistant at ETH Zürich in the computer vision and geometry group!
 
-- 🔭 I’m currently working on Miralis, a firmware emulator
+- 🔭 I’m currently working on JPL, a joint point line detector
 - 🌱 I really enjoy writing systems code
 - 📫 How to reach me: fcosta@ethz.ch
 - ⚡ Fun fact: My favourite language is c++
