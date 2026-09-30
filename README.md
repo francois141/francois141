@@ -3,12 +3,10 @@
 ## I am a PhD student at Stanford University!
 
 - 🔬 My research interests are **kernel generation**, **compilers**, and **verification**
-- 🔭 I'm currently rotating with Azalia Mirhoseini
-- 📄 Previously: [Miralis](https://miralis-firmware.github.io) (SOSP '25, HotOS '25) at EPFL, [Dirigent](https://github.com/eth-easl/dirigent) (SOSP '24) at ETH Zürich, and [UPAL](https://github.com/francois141/upal) (ECCV '26)
+- 🔭 I'm currently working with Azalia Mirhoseini
 - 🌱 I really enjoy writing systems code
 - 🌐 Website: [francois141.github.io](https://francois141.github.io)
 - 📫 How to reach me: francois.costa@stanford.edu
-- ⚡ Fun fact: My favourite language is C++
 
 ## 💻 Tech Stack:
 
