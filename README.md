@@ -1,11 +1,14 @@
-# Welcome to my page, my name is François Costa 👋 
+# Welcome to my page, my name is François Costa 👋
 
-## I am a research assistant at ETH Zürich in the computer vision and geometry group!
+## I am a PhD student at Stanford University!
 
-- 🔭 I’m currently working on JPL, a joint point line detector
+- 🔬 My research interests are **kernel generation**, **compilers**, and **verification**
+- 🔭 I'm currently rotating with Azalia Mirhoseini
+- 📄 Previously: [Miralis](https://miralis-firmware.github.io) (SOSP '25, HotOS '25) at EPFL, [Dirigent](https://github.com/eth-easl/dirigent) (SOSP '24) at ETH Zürich, and [UPAL](https://github.com/francois141/upal) (ECCV '26)
 - 🌱 I really enjoy writing systems code
-- 📫 How to reach me: fcosta@ethz.ch
-- ⚡ Fun fact: My favourite language is c++
+- 🌐 Website: [francois141.github.io](https://francois141.github.io)
+- 📫 How to reach me: francois.costa@stanford.edu
+- ⚡ Fun fact: My favourite language is C++
 
 ## 💻 Tech Stack:
 
@@ -15,6 +18,7 @@
 
 ![C](https://img.shields.io/badge/c-%2300599C.svg?style=for-the-badge&logo=c&logoColor=white)
 ![C++](https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white)
+![CUDA](https://img.shields.io/badge/cuda-%2376B900.svg?style=for-the-badge&logo=nvidia&logoColor=white)
 ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
 ![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=java&logoColor=white)
@@ -23,7 +27,7 @@
 ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 
 #### Version Control - CI / CD - Compile
- 
+
 ![CMake](https://img.shields.io/badge/CMake-%23008FBA.svg?style=for-the-badge&logo=cmake&logoColor=white)
 ![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
 ![Git](https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white)
@@ -33,7 +37,7 @@
 ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
 ![Shell scripts](https://img.shields.io/badge/Shell_Script-121011?style=for-the-badge&logo=gnu-bash&logoColor=white)
 
-#### Databases 
+#### Databases
 
 ![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=for-the-badge&logo=Firebase&logoColor=white)
 ![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
@@ -65,7 +69,7 @@
 ## 📊 GitHub Stats:
 
 <div align="center">
- 
+
 ![](https://github-readme-stats.vercel.app/api/top-langs/?username=francois141&theme=dark&hide_border=true&include_all_commits=true&count_private=false&layout=compact)
- 
+
 </div>
